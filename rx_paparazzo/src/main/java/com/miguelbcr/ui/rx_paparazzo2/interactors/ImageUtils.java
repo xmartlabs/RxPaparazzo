@@ -27,6 +27,7 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.exifinterface.media.ExifInterface;
+
 import com.miguelbcr.ui.rx_paparazzo2.entities.Config;
 import com.miguelbcr.ui.rx_paparazzo2.entities.FileData;
 import com.miguelbcr.ui.rx_paparazzo2.entities.TargetUi;
@@ -67,7 +68,7 @@ public final class ImageUtils {
   }
 
   public File getOutputFile(String prefix, String extension) {
-    String fileProviderDirectory = config.getFileProviderDirectory();
+    String fileProviderDirectory = config.getFileProviderDirectory(targetUi.getContext());
     File dir = getDir(null, fileProviderDirectory);
 
     return createTimestampedFile(dir, prefix, extension);
@@ -96,10 +97,8 @@ public final class ImageUtils {
   }
 
   public File getPrivateFile(String directory, String filename) {
-    File dir = new File(targetUi.getContext().getFilesDir(), directory);
-    dir.mkdirs();
 
-    return new File(dir, filename);
+    return new File(directory, filename);
   }
 
   private String getApplicationName(Context context) {
@@ -345,20 +344,20 @@ public final class ImageUtils {
       String destinationPath = destination.getAbsolutePath();
       String sourcePath = source.getAbsolutePath();
       if (getCompressFormat(destinationPath) == Bitmap.CompressFormat.JPEG) {
-          ExifInterface exifSource = new ExifInterface(sourcePath);
-          ExifInterface exifDest = new ExifInterface(destinationPath);
+        ExifInterface exifSource = new ExifInterface(sourcePath);
+        ExifInterface exifDest = new ExifInterface(destinationPath);
 
-          for (String attribute : getExifTags()) {
-            String tagValue = exifSource.getAttribute(attribute);
+        for (String attribute : getExifTags()) {
+          String tagValue = exifSource.getAttribute(attribute);
 
-            if (!TextUtils.isEmpty(tagValue)) {
-              exifDest.setAttribute(attribute, tagValue);
-            }
+          if (!TextUtils.isEmpty(tagValue)) {
+            exifDest.setAttribute(attribute, tagValue);
           }
+        }
 
-          exifDest.setAttribute(ExifInterface.TAG_IMAGE_WIDTH, String.valueOf(dimens.getWidth()));
-          exifDest.setAttribute(ExifInterface.TAG_IMAGE_LENGTH, String.valueOf(dimens.getHeight()));
-          exifDest.saveAttributes();
+        exifDest.setAttribute(ExifInterface.TAG_IMAGE_WIDTH, String.valueOf(dimens.getWidth()));
+        exifDest.setAttribute(ExifInterface.TAG_IMAGE_LENGTH, String.valueOf(dimens.getHeight()));
+        exifDest.saveAttributes();
       }
     } catch (IOException e) {
       String message = String.format("Could not copy exif tags from '%s'", source.getAbsolutePath());
@@ -367,7 +366,7 @@ public final class ImageUtils {
   }
 
   private String[] getExifTags() {
-    return new String[] {
+    return new String[]{
         ExifInterface.TAG_DATETIME, ExifInterface.TAG_EXPOSURE_TIME, ExifInterface.TAG_FLASH,
         ExifInterface.TAG_FOCAL_LENGTH, ExifInterface.TAG_GPS_ALTITUDE,
         ExifInterface.TAG_GPS_ALTITUDE_REF, ExifInterface.TAG_GPS_DATESTAMP,

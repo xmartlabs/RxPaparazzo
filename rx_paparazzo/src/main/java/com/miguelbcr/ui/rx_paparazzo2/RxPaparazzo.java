@@ -38,7 +38,6 @@ public final class RxPaparazzo {
   public static final int RESULT_DENIED_PERMISSION = 2;
   public static final int RESULT_DENIED_PERMISSION_NEVER_ASK = 3;
   private static String fileProviderAuthority;
-  private static String fileProviderPath;
 
   private RxPaparazzo() {
   }
@@ -60,14 +59,6 @@ public final class RxPaparazzo {
      */
     public RegisterBuilder withFileProviderAuthority(String authority) {
       fileProviderAuthority = authority;
-      return self;
-    }
-
-    /**
-     * Sets this to the path to use in the {@link androidx.core.content.FileProvider} xml file
-     */
-    public RegisterBuilder withFileProviderPath(String path) {
-      fileProviderPath = path;
       return self;
     }
   }
@@ -103,7 +94,6 @@ public final class RxPaparazzo {
       this.self = (B)this;
       this.config = new Config();
       this.config.setFileProviderAuthority(fileProviderAuthority);
-      this.config.setFileProviderPath(fileProviderPath);
       this.applicationComponent = ApplicationComponent.create(new ApplicationModule(config, ui));
     }
 
@@ -258,6 +248,5 @@ public final class RxPaparazzo {
     public Observable<Response<T, List<FileData>>> usingFiles() {
       return getApplicationComponent().files().pickFiles();
     }
-
   }
 }

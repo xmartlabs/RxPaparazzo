@@ -149,7 +149,7 @@ public final class CropImage extends UseCase<FileData> {
   private File getOutputFile() {
     String destination = fileData.getFile().getAbsolutePath();
     String extension = imageUtils.getFileExtension(destination, ImageUtils.JPG_FILE_EXTENSION);
-    String directory = config.getFileProviderDirectory();
+    String directory = config.getFileProviderDirectory(targetUi.getContext());
     String outputFilename = imageUtils.createTimestampedFilename(CROP_APPEND, extension);
     File outputFile = imageUtils.getPrivateFile(directory, outputFilename);
 

@@ -3,4 +3,9 @@
   <files-path
       name="RxPaparazzoImages"
       path="RxPaparazzo/"/>
+
+  <external-files-path
+      name="RxPaparazzoPhotos"
+      path="/"
+    />
 </paths>

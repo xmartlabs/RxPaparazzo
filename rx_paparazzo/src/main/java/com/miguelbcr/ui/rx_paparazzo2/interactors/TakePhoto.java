@@ -86,7 +86,7 @@ public final class TakePhoto extends UseCase<FileData> {
 
   private File getOutputFile() {
     String filename = imageUtils.createTimestampedFilename(PHOTO_FILE_PREFIX, ImageUtils.JPG_FILE_EXTENSION);
-    String directory = config.getFileProviderDirectory();
+    String directory = config.getFileProviderDirectory(targetUi.getContext());
     return imageUtils.getPrivateFile(directory, filename);
   }
 

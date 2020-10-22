@@ -17,22 +17,30 @@
 package com.miguelbcr.ui.rx_paparazzo2.interactors;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+
 import com.miguelbcr.ui.rx_paparazzo2.entities.Config;
 import com.miguelbcr.ui.rx_paparazzo2.entities.FileData;
 import com.miguelbcr.ui.rx_paparazzo2.entities.TargetUi;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import io.reactivex.Observable;
 
@@ -135,10 +143,26 @@ public final class GetPath extends UseCase<FileData> {
   private FileData getPrimaryExternalDocument(Document document) {
     String mimeType = ImageUtils.getMimeType(document.id);
     String fileName = ImageUtils.stripPathFromFilename(document.id);
-    String filePath = Environment.getExternalStorageDirectory() + "/" + document.id;
-    File file = new File(filePath);
+    String newFilePath = getFileName(targetUi.getContext().getContentResolver(), uri);
+    File copyFile = new File(targetUi.getContext().getCacheDir(), newFilePath);
+    copyFile(uri, copyFile);
+
+    File file = new File(newFilePath);
 
     return new FileData(file, false, fileName, mimeType);
+  }
+
+  private String getFileName(ContentResolver contentResolver, Uri fileUri) {
+    String name = "";
+    Cursor returnCursor = contentResolver.query(fileUri, null, null, null, null);
+    if (returnCursor != null) {
+      int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+      returnCursor.moveToFirst();
+      name = returnCursor.getString(nameIndex);
+      returnCursor.close();
+    }
+
+    return name;
   }
 
   private FileData getDownloadsDocument(Context context) {
@@ -171,7 +195,7 @@ public final class GetPath extends UseCase<FileData> {
       contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
     }
 
-    return getDataColumn(context, contentUri, MediaStore.Images.Media._ID + "=?", new String[] { document.id });
+    return getDataColumn(context, contentUri, MediaStore.Images.Media._ID + "=?", new String[]{document.id});
   }
 
   @SuppressLint("NewApi")
@@ -192,10 +216,14 @@ public final class GetPath extends UseCase<FileData> {
     String mimeTypeColumn = MediaStore.Images.Media.MIME_TYPE;
     String titleColumn = MediaStore.Images.Media.TITLE;
 
-    String[] projection = { dataColumn, nameColumn, mimeTypeColumn, titleColumn };
+    String[] projection = {dataColumn, nameColumn, mimeTypeColumn, titleColumn};
+
+    String newFilePath = getFileName(targetUi.getContext().getContentResolver(), uri);
+    File copyFile = new File(targetUi.getContext().getCacheDir(), newFilePath);
+    copyFile(uri, copyFile);
 
     try {
-      cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
+      cursor = context.getContentResolver().query(Uri.fromFile(copyFile), projection, selection, selectionArgs, null);
       if (cursor != null && cursor.moveToFirst()) {
         String filePath = cursor.getString(cursor.getColumnIndexOrThrow(dataColumn));
         String fileName = cursor.getString(cursor.getColumnIndexOrThrow(nameColumn));
@@ -219,6 +247,37 @@ public final class GetPath extends UseCase<FileData> {
       if (cursor != null) {
         cursor.close();
       }
+    }
+  }
+
+  private void copyFile(Uri uri, File copyFile) {
+    try {
+      ParcelFileDescriptor parcelFileDescriptor = targetUi.getContext().getContentResolver()
+          .openFileDescriptor(
+              uri,
+              "r",
+              null
+          );
+
+      FileInputStream inputStream = new FileInputStream(parcelFileDescriptor.getFileDescriptor());
+      FileOutputStream outputStream = new FileOutputStream(copyFile);
+      copyStream(inputStream, outputStream);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void copyStream(InputStream inputStream, OutputStream output) {
+    try {
+      byte[] buffer = new byte[4 * 1024]; // or other buffer size
+      int read;
+      while ((read = inputStream.read(buffer)) != -1) {
+        output.write(buffer, 0, read);
+      }
+      output.flush();
+      inputStream.close();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 

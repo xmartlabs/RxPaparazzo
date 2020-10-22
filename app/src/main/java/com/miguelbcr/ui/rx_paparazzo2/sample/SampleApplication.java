@@ -19,8 +19,7 @@ public class SampleApplication extends Application {
     @Override public void onCreate() {
         super.onCreate();
         RxPaparazzo.register(this)
-            .withFileProviderAuthority("")
-            .withFileProviderPath("");
+            .withFileProviderAuthority("");
 
         AppCare.YesSir.takeCareOn(this);
 

@@ -17,6 +17,7 @@
 package com.miguelbcr.ui.rx_paparazzo2.entities;
 
 import android.content.Context;
+import android.os.Environment;
 
 import com.miguelbcr.ui.rx_paparazzo2.entities.size.ScreenSize;
 import com.miguelbcr.ui.rx_paparazzo2.entities.size.Size;
@@ -24,7 +25,6 @@ import com.yalantis.ucrop.UCrop;
 
 public class Config {
 
-  private static final String DEFAULT_FILE_PROVIDER_PATH = "RxPaparazzo";
   private static final String DEFAULT_FILE_PROVIDER_AUTHORITIES_SUFFIX = "file_provider";
   private static final long NO_FILESIZE_LIMIT = Long.MAX_VALUE;
 
@@ -43,7 +43,6 @@ public class Config {
   private boolean sendToMediaScanner;
 
   private String fileProviderAuthority;
-  private String fileProviderDirectory;
 
   public Config() {
     this.size = new ScreenSize();
@@ -56,7 +55,6 @@ public class Config {
     this.sendToMediaScanner = false;
     this.failCropIfNotImage = false;
     this.fileProviderAuthority = null;
-    this.fileProviderDirectory = null;
     this.maximumFileSize = NO_FILESIZE_LIMIT;
   }
 
@@ -170,16 +168,7 @@ public class Config {
     return fileProviderAuthority;
   }
 
-  public void setFileProviderPath(String fileProviderDirectory) {
-    this.fileProviderDirectory = fileProviderDirectory;
+  public String getFileProviderDirectory(Context context) {
+    return context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
   }
-
-  public String getFileProviderDirectory() {
-    if (fileProviderDirectory == null || fileProviderDirectory.trim().length() == 0) {
-      return DEFAULT_FILE_PROVIDER_PATH;
-    }
-
-    return fileProviderDirectory;
-  }
-
 }
